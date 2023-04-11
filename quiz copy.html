@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
+
+<link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
+
+
+  <title>VueJs</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.0/css/bulma.min.css'>
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css'>
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
+  
+<style>
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,400i,700");
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700");
+body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 14px;
+  /* mocking native UI */
+  cursor: default !important;
+  /* remove text selection cursor */
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  /* remove text selection */
+  -webkit-user-drag:none;
+  /* disable element dragging */
+}
+
+.button {
+  transition: 0.3s;
+}
+
+
+
+.title,
+.subtitle {
+  font-family: Montserrat, sans-serif;
+  font-weight: normal;
+  color: black !important;
+}
+
+.animated {
+  transition-duration: 0.15s;
+}
+
+
+
+.questionBox {
+  height: 100%;
+  position: relative;
+  display: flex;
+}
+.questionBox .titleContainer {
+  background: #29c5dc;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+.questionBox .titleContainer h2 {
+  color: white;
+  padding: 18px;
+}
+
+.questionBox .quizCompleted {
+  width: 100%;
+  padding: 25px;
+}
+.questionBox .questionContainer {
+  white-space: normal;
+  height: 100%;
+  width: 100%;
+}
+.questionBox .questionContainer .optionContainer {
+  margin-top: 12px;
+  flex-grow: 1;
+}
+.questionBox .questionContainer .optionContainer .option {
+  border-radius: 290486px;
+  padding: 9px 18px;
+  margin: 0 18px;
+  margin-bottom: 12px;
+  transition: 0.3s;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: transparent 1px solid;
+}
+.questionBox .questionContainer .optionContainer .option.is-selected {
+  border-color: #209cee;
+  background-color: white;
+}
+.questionBox .questionContainer .optionContainer .option:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.questionBox .questionContainer .optionContainer .option:active {
+  transform: scaleX(0.9);
+}
+.questionBox .questionContainer .questionFooter {
+  width: 100%;
+  align-self: flex-end;
+}
+.questionBox .questionContainer .questionFooter .pagination {
+  margin: 15px 25px;
+}
+.questionBox .questionContainer .questionFooter .progressContainer {
+  margin: 15px 25px;
+}
+
+@media screen and (min-width: 769px) {
+  .container {
+    height: 100%;
+  }
+  .container .columns {
+    height: 100%;
+  }
+  .container .columns .column {
+    height: 100%;
+  }
+
+
+  .questionBox {
+    align-items: center;
+    justify-content: center;
+  }
+  .questionBox .questionContainer {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+</style>
+
+
+
+</head>
+
+<body translate="no" >
+    <section id="app" class="hero is-black is-fullheight">
+
+        <!--heroBody-->
+        <div class="hero-body">
+     
+           <!--container-->
+           <div class="container is-fluid">
+     
+              <!--columns-->
+              <div class="columns is-centered is-marginless is-paddingless box">
+     
+               
+                 <!--questionBox-->
+                 <div class="column is-7 questionBox is-paddingless is-marginless">
+     
+                    <!-- transition -->
+                    <transition enter-active-class="animated jackInTheBox" leave-active-class="animated zoomOut" mode="out-in">
+     
+                       <!--qusetionContainer-->
+                       <div class="questionContainer" v-if="questionIndex<quiz.questions.length && quizStarted" v-bind:key="questionIndex">
+     
+                          <!-- questionTitle -->
+                          <div class="titleContainer">
+                             <h2 class="title is-5">{{questionIndex+1}}. {{ quiz.questions[questionIndex].text }}</h2>
+                          </div>
+     
+                          <!-- quizOptions -->
+                          <div class="optionContainer">
+                             <div class="option" v-for="(response, index) in quiz.questions[questionIndex].responses" @click="selectOption(index)" :class="{ 'is-selected': userResponses[questionIndex] == index}" :key="index">
+                                {{ index | charIndex }}. {{ response.text }}
+                             </div>
+                          </div>
+     
+                          <!--quizFooter: navigation and progress-->
+                          <div class="questionFooter">
+     
+                             <!--pagination-->
+                             <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+     
+                                <!-- prevButton -->
+                                <a class="pagination-previous button is-info is-rounded is-outlined" v-on:click="prev();" :disabled="questionIndex < 1">
+                         Previous Question
+                       </a>
+     
+                                <!-- prevButton -->
+                                <a class="pagination-next button is-info is-rounded" v-on:click="next();" :disabled="questionIndex>=quiz.questions.length">
+                         {{ (userResponses[questionIndex]==null)?'Skip':'Next' }} Question
+                       </a>
+     
+                             </nav>
+                             <!--/pagination-->
+     
+                             <!--progress-->
+                             <div class="progressContainer">
+                                <progress class="progress is-success is-small" :value="(questionIndex/quiz.questions.length)*100" max="100">{{(questionIndex/quiz.questions.length)*100}}%</progress>
+                             </div>
+                             <!--/progress-->
+     
+                          </div>
+                          <!--/quizFooter-->
+     
+                       </div>
+                       <!--/questionContainer-->
+     
+                       <!--quizCompletedResult-->
+                       <div v-if="questionIndex >= quiz.questions.length && quizStarted" v-bind:key="questionIndex" class="quizCompleted has-text-centered">
+     
+                          <!-- quizCompletedIcon: Achievement Icon -->
+                          <span class="icon is-large has-text-success">
+                            <i class="fa fa-check-circle-o fa-3x"></i>
+                        </span>
+     
+                          <!--resultTitleBlock-->
+                          <h2 class="title">
+                             You did an amazing job!
+                          </h2>
+                          <p class="subtitle">
+                            
+                             Total score: {{ score()[0] }} / {{ quiz.questions.length }}
+                             <br>
+
+                             Total Right Answers : {{ score()[1] }}
+                             <br>
+                             Total Wrong Answers : {{ score()[2] }}
+                             <br>
+                             Total Skipped Questions : {{ score()[3] }}
+
+
+                          </p>
+                          <!--/resultTitleBlock-->
+     
+                       </div>
+                       <!--/quizCompetedResult-->
+     
+                    </transition>
+     
+                 </div>
+                 <!--/questionBox-->
+     
+              </div>
+              <!--/columns-->
+     
+           </div>
+           <!--/container-->
+     
+        </div>
+        <!--/heroBody-->
+     
+     </section>
+   
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js'></script>
+      <script id="rendered-js" >
+var quiz = {
+      user: "Dave",
+      questions: [
+         {
+            text: "What is the full form of HTTP?",
+            responses: [
+               { text: "Hyper text transfer package" },
+               { text: "Hyper text transfer protocol", correct: true },
+               { text: "Hyphenation text test program" },
+               { text: "None of the above" }
+            ]
+         },
+         {
+            text: "HTML document start and end with which tag pairs?",
+            responses: [
+               { text: "HTML", correct: true },
+               { text: "WEB" },
+               { text: "HEAD" },
+               { text: "BODY" }
+            ]
+         }
+        //  ,
+        //  {
+        //     text: "Which tag is used to create body text in HTML?",
+        //     responses: [
+        //        { text: "HEAD" },
+        //        { text: "BODY", correct: true },
+        //        { text: "TITLE" },
+        //        { text: "TEXT" }
+        //     ]
+        //  },
+        //  {
+        //     text: "Outlook Express is _________",
+        //     responses: [
+        //        { text: "E-Mail Client", correct: true },
+        //        { text: "Browser" },
+        //        {
+        //           text: "Search Engine"
+        //        },
+        //        { text: "None of the above" }
+        //     ]
+        //  },
+        //  {
+        //     text: "What is a search engine?",
+        //     responses: [
+        //        { text: "A hardware component " },
+        //        {
+        //           text: "A machinery engine that search data"
+        //        },
+        //        { text: "A web site that searches anything", correct: true },
+        //        { text: "A program that searches engines" }
+        //     ]
+        //  },
+        //  {
+        //     text:
+        //        "What does the .com domain represents?",
+        //     responses: [
+        //        { text: "Network" },
+        //        { text: "Education" },
+        //        { text: "Commercial", correct: true },
+        //        { text: "None of the above" }
+        //     ]
+        //  },
+        //  {
+        //     text: "In Satellite based communication, VSAT stands for? ",
+        //     responses: [
+        //        { text: " Very Small Aperture Terminal", correct: true },
+        //        { text: "Varying Size Aperture Terminal " },
+        //        {
+        //           text: "Very Small Analog Terminal"
+        //        },
+        //        { text: "None of the above" }
+        //     ]
+        //  },
+        //  {
+        //     text: "What is the full form of TCP/IP? ",
+        //     responses: [
+        //        { text: "Telephone call protocol / international protocol" },
+        //        { text: "Transmission control protocol / internet protocol", correct: true },
+        //        { text: "Transport control protocol / internet protocol " },
+        //        { text: "None of the above" }
+        //     ]
+        //  },
+        //  {
+        //     text:
+        //        "What is the full form of HTML?",
+        //     responses: [
+        //        {
+        //           text: "Hyper text marking language"
+        //        },
+        //        { text: "Hyphenation text markup language " },
+        //        { text: "Hyper text markup language", correct: true },
+        //        { text: "Hyphenation test marking language" }
+        //     ]
+        //  },
+        //  {
+        //     text: "\"Yahoo\", \"Infoseek\" and \"Lycos\" are _________?",
+        //     responses: [
+        //        { text: "Browsers " },
+        //        { text: "Search Engines", correct: true },
+        //        { text: "News Group" },
+        //        { text: "None of the above" }
+        //     ]
+        //  }
+      ]
+   },
+
+   userResponseSkelaton = Array(quiz.questions.length).fill(null);
+
+var app = new Vue({
+   el: "#app",
+   data: {
+      quiz: quiz,
+      questionIndex: 0,
+      userResponses: userResponseSkelaton,
+      quizStarted: true,
+      isActive: false
+   },
+   filters: {
+      charIndex: function(i) {
+         return String.fromCharCode(97 + i);
+      }
+   },
+
+   methods: {
+      selectOption: function(index) {
+         Vue.set(this.userResponses, this.questionIndex, index);
+        //  console.log(this.userResponses);
+      },
+      next: function() {
+         if (this.questionIndex < this.quiz.questions.length)
+            this.questionIndex++;
+      },
+
+      prev: function() {
+         if (this.quiz.questions.length > 0) this.questionIndex--;
+      },
+      // Return "true" count in userResponses
+      score: function() {
+         var score = 0;
+         var right = 0;
+         var wrong = 0;
+         var skipped = 0;
+         var arr=[];
+         var summary=[];
+
+         for (let i = 0; i < this.userResponses.length; i++) {
+            
+            if (typeof this.quiz.questions[i].responses[this.userResponses[i]] !== "undefined" &&
+               this.quiz.questions[i].responses[this.userResponses[i]].correct) {
+                right = right + 1;
+                summary[i] = ` <i class="fa fa-check text-sucess fa-3x"></i>`;
+            }
+            else{
+                if((typeof this.quiz.questions[i].responses[this.userResponses[i]]) == "undefined"){
+                    skipped = skipped + 1;
+                    summary[i] = ``;
+                }
+                else{
+                    wrong = wrong +1;
+                    summary[i] = ` <i class="fa fa-times text-danger fa-3x"></i>`;
+                }
+            }
+            
+           
+
+         }
+
+         score = right - (wrong * 0.333);
+
+         arr[0] = score
+         arr[1] = right
+         arr[2] = wrong
+         arr[3] = skipped
+
+
+         console.log(summary)
+         return arr;
+
+         //return this.userResponses.filter(function(val) { return val }).length;
+      }
+   }
+});
+
+    </script>
+
+  
+
+</body>
+
+</html>
+ 
